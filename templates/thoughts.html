@@ -1,0 +1,21 @@
+<!-- templates/thoughts.html -->
+<div id="thought-widget" class="thought-widget" style="display: none;">
+    <div class="thought-header">
+        <h3>My Thoughts</h3>
+        <button class="close-widget">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <form class="thought-form" method="post" enctype="multipart/form-data">
+        {{ thought_form.hidden_tag() }}
+        {{ thought_form.content(placeholder="Write here...") }}
+        <div class="thought-actions">
+            <label class="photo-upload-btn">
+                <i class="fas fa-image"></i>
+                {{ thought_form.photo(class="hidden") }}
+            </label>
+            {{ thought_form.submit(class="save-btn") }}
+        </div>
+    </form>
+</div>
+

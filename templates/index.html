@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MY DIARY</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="bg-gradient">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                    <span class="close-flash">&times;</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold text-center mb-8">MY DIARY</h1>
+
+        <!-- Profile Photo Section -->
+        <div class="flex flex-col items-center mb-8">
+            <form method="post" enctype="multipart/form-data" class="profile-form">
+                {{ profile_form.hidden_tag() }}
+                <div class="profile-upload bg-gray-200 relative">
+                    {% if profile_image %}
+                        <img src="{{ url_for('static', filename=profile_image) }}"
+                             alt="Profile" class="profile-img">
+                        <!-- Remove Photo Icon -->
+                        <button type="button" class="remove-photo-btn"
+                                onclick="document.getElementById('remove-photo-form').submit();">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    {% endif %}
+
+                    <!-- Upload Photo Icon -->
+                    <label for="profile-photo" class="upload-photo-btn">
+                        <i class="fas fa-{% if profile_image %}camera{% else %}plus{% endif %}"></i>
+                    </label>
+
+                    <!-- Change Photo Overlay -->
+                    <div class="upload-overlay">
+                        <i class="fas fa-camera"></i>
+                        <span>Change Photo</span>
+                    </div>
+
+                    {{ profile_form.photo(id="profile-photo", class="hidden", onchange="this.form.submit()") }}
+                </div>
+            </form>
+
+            <!-- Hidden Remove Photo Form -->
+            <form id="remove-photo-form" method="post" action="{{ url_for('remove_profile_photo') }}"></form>
+        </div>
+
+        <!-- Calendar Section -->
+        {% for month_num, month_name in months.items() %}
+            <div class="month-section mb-8">
+                <h2 class="text-2xl font-semibold text-center mb-6">{{ month_name }}</h2>
+                <div class="grid grid-cols-7 gap-4 justify-items-center">
+                    {% for day in range(1, month_days[month_num] + 1) %}
+                        {% set entry_key = month_name + '-' + day|string %}
+                        <a href="javascript:void(0);" onclick="openThoughtWidget('{{ month_name }}', '{{ day }}')"
+                           class="date-circle">
+                            {% if entries and entry_key in entries and entries[entry_key]['image'] %}
+                                <img src="{{ url_for('static', filename=entries[entry_key]['image']) }}"
+                                     alt="Day {{ day }}" class="circle-img">
+                                <div class="entry-indicator">
+                                    <i class="fas fa-book-open"></i>
+                                </div>
+                            {% else %}
+                                <div class="day-number">{{ day }}</div>
+                                {% if entries and entry_key in entries %}
+                                    <div class="entry-indicator">
+                                        <i class="fas fa-pen"></i>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Thought Widget -->
+    {% include 'thoughts.html' %}
+
+    <script>
+        // Flash message kapatma
+        document.querySelectorAll('.close-flash').forEach(button => {
+            button.addEventListener('click', function() {
+                this.parentElement.style.display = 'none';
+            });
+        });
+
+        // Profil fotoğrafı önizleme
+        document.getElementById('profile-photo').addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.querySelector('.profile-img');
+                    if (img) {
+                        img.src = e.target.result;
+                    } else {
+                        const newImg = document.createElement('img');
+                        newImg.src = e.target.result;
+                        newImg.classList.add('profile-img');
+                        document.querySelector('.profile-upload').appendChild(newImg);
+                    }
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Thought widget işlemleri
+        function openThoughtWidget(month, day) {
+            const widget = document.getElementById('thought-widget');
+            widget.style.display = 'block';
+            widget.setAttribute('data-month', month);
+            widget.setAttribute('data-day', day);
+        }
+
+        document.querySelector('.close-widget').addEventListener('click', function() {
+            document.getElementById('thought-widget').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
+
+
+
+
